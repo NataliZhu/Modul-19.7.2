@@ -32,7 +32,7 @@ class PetFriends:
         """Метод делает запрос к API сервера и возвращает статус запроса и результат в формате JSON
         со списком наденных питомцев, совпадающих с фильтром. На данный момент фильтр может иметь
         либо пустое значение - получить список всех питомцев, либо 'my_pets' - получить список
-        собственных питомцев"""
+        собственных питомцев'"""
 
         headers = {'auth_key': auth_key['key']}
         filter = {'filter': filter}
@@ -99,6 +99,93 @@ class PetFriends:
         }
 
         res = requests.put(self.base_url + 'api/pets/' + pet_id, headers=headers, data=data)
+        status = res.status_code
+        result = ""
+        try:
+            result = res.json()
+        except json.decoder.JSONDecodeError:
+            result = res.text
+        return status, result
+
+#homework
+#POST
+    def add_new_pet_simple(self, auth_key: json, name:str, animal_type: str, age: int):
+        """Этот метод позволяет добавлять информацию о новом питомце без фото.
+        Результат в формате JSON с данными добавленного питомца  без фото"""
+
+        data = MultipartEncoder(
+            fields={
+                'name': name,
+                'animal_type': animal_type,
+                'age': age
+            })
+        headers = {'auth_key': auth_key['key'], 'Content-Type': data.content_type}
+
+        res = requests.post(self.base_url + 'api/create_pet_simple', headers=headers, data=data)
+        status = res.status_code
+        result = ""
+        try:
+            result = res.json()
+        except json.decoder.JSONDecodeError:
+            result = res.text
+        print(result)
+        return status, result
+
+#GET
+
+    def list_of_pets(self, auth_key: json, filter: str = "") -> json:
+        """Метод делает запрос к API сервера и возвращает статус заппоса и результат в формате
+        JSON со списком найденных питомцев, совпадающих с фильтром.
+        На данный момент фильтр может иметь пустое значение - получить список всех питомцев,
+        либо 'my_pets' - получить список собственных питомцев"""
+
+        headers = {'auth_key': auth_key['key']}
+        filter = {'filter': filter}
+
+        res = requests.get(self. base_url + 'api/pets', headers=headers, params=filter)
+        status = res.status_code
+        result = ""
+        try:
+            result = res.json()
+        except json.decoder.JSONDecodeError:
+            result = res.text
+        return status, result
+
+
+#PUT
+    def update_pet_info_id(self, auth_key: json, pet_id: str, name: str,
+                        animal_type: str, age: int) -> json:
+        """Этот метод позволяет обновить информацию о питомце и возвращает статус запроса
+        и result в формате JSON с обновлённыи данными питомца"""
+
+        headers = {"auth_key": auth_key['key']}
+        data = {'name': name,
+                'animal_type': animal_type,
+                'age': age
+                }
+        res = requests.put(self.base_url + 'api/pets/' + pet_id, headers=headers, data=data)
+        # Получаем значение статус-кода и содержимое ответа сервера
+        status = res.status_code
+        result = ""
+        try:
+            result = res.json()
+        except:
+            result = res.text
+        return status, result
+
+
+#POST
+    def add_pet_photo(self, auth_key: json, pet_id: str, pet_photo: str) -> json:
+        """Метод отправляет на сервер фотографию для добавления к уже добавленному питомцу и возвращает статус
+        запроса на сервер и результат в формате JSON с данными питомца"""
+
+        data = MultipartEncoder(
+            fields={
+                'pet_photo': (pet_photo, open(pet_photo, 'rb'), 'image/jpeg')
+            })
+        headers = {'auth_key': auth_key['key'], 'Content-Type': data.content_type}
+
+        res = requests.post(self.base_url + '/api/pets/set_photo/' + pet_id, headers=headers, data=data)
         status = res.status_code
         result = ""
         try:
